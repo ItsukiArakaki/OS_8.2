@@ -1,4 +1,8 @@
-<script type="application/x-javascript">
+<html>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+ <head>
+  <title>Translation from Logical address to Physical Address</title>
+  <script type="application/x-javascript">
 
 var width = 30;
 var scale = 2;
@@ -61,19 +65,19 @@ function TouchXY()
 function XY(x,y)
 {
     if (10<=x&&x<=110&&10<=y&&y<=310) {
-    var canvas = document.getElementById("canvas");
-    var ctx = canvas.getContext("2d");
-    ctx.clearRect(10,10,10+60,410);
-    memory(ctx,10,10);
-    ctx.clearRect(250*scale,10,250*scale+60,410);
-    memory(ctx,250,10);
+	var canvas = document.getElementById("canvas");
+	var ctx = canvas.getContext("2d");
+	ctx.clearRect(10,10,10+60,410);
+	memory(ctx,10,10);
+	ctx.clearRect(250*scale,10,250*scale+60,410);
+	memory(ctx,250,10);
 
-    strokeRect(ctx,10,y,10+width,y+2);
+	strokeRect(ctx,10,y,10+width,y+2);
         address = (y-10)*100;
         physical = translate(address);
-    y = physical/100+10;
-    strokeRect(ctx,250,y,250+width,y+2);
-    update1();
+	y = physical/100+10;
+	strokeRect(ctx,250,y,250+width,y+2);
+	update1();
     }
 }
 
@@ -114,8 +118,8 @@ function memory(ctx,x,y) {
     var dx = 40;
 
     for(var i=0;i<vmsize-1;i++) {
-    strokeRect(ctx,x,y,x+width,y+dy);
-    y += dy;
+	strokeRect(ctx,x,y,x+width,y+dy);
+	y += dy;
     }
 }
 
@@ -124,11 +128,97 @@ function page(ctx,x,y) {
     var dx = 40;
 
     for(var i=0;i<vmsize-1;i++) {
-    strokeRect(ctx,x,y,x+width,y+dy);
-    y += dy;
+	strokeRect(ctx,x,y,x+width,y+dy);
+	y += dy;
     }
     return box;
 }
 
+// メモリブロックのアニメーション用の変数
+var animationRequestId = null;
+var animationStartTime = null;
+var animationDuration = 1000; // アニメーションの持続時間（ミリ秒）
+var animationStartColor = "blue"; // アニメーション開始時の色
+var animationEndColor = "red";   // アニメーション終了時の色
+
+// メモリブロックの現在の色
+var currentBlockColor = animationStartColor;
+
+function animateMemoryBlock() {
+    // アニメーション開始時刻を設定
+    if (!animationStartTime) {
+        animationStartTime = performance.now();
+    }
+
+    // 現在の経過時間を計算
+    var currentTime = performance.now();
+    var elapsedTime = currentTime - animationStartTime;
+
+    // アニメーションの進捗を計算（0から1の範囲）
+    var animationProgress = Math.min(elapsedTime / animationDuration, 1);
+
+    // 現在のブロックの色を更新
+    currentBlockColor = interpolateColors(animationStartColor, animationEndColor, animationProgress);
+
+    // メモリブロックを再描画
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+    ctx.clearRect(10, 10, 10 + 60, 410);
+    memory(ctx, 10, 10);
+
+    // メモリブロックをアニメーション表示
+    ctx.fillStyle = currentBlockColor;
+    ctx.fillRect(10, addressToYCoordinate(address), width, 2);
+
+    // アニメーションが終了したらアニメーションを停止
+    if (animationProgress < 1) {
+        animationRequestId = requestAnimationFrame(animateMemoryBlock);
+    } else {
+        animationStartTime = null;
+        animationRequestId = null;
+    }
+}
+
+function addressToYCoordinate(address) {
+    // アドレスからY座標への変換ロジックを追加（必要に応じて実装）
+    // この関数は、ロジカルアドレスをY座標に変換します。
+}
+
+function interpolateColors(startColor, endColor, progress) {
+    // 色を補間するロジックを追加（必要に応じて実装）
+    // startColorからendColorへの進捗（0から1の範囲）に応じて、中間の色を計算します。
+}
+
+function changeMemoryBlockColor() {
+    // アニメーションが実行中であれば停止
+    if (animationRequestId) {
+        cancelAnimationFrame(animationRequestId);
+        animationRequestId = null;
+    }
+
+    // メモリブロックのアニメーションを開始
+    animateMemoryBlock();
+}
+
+// ユーザーがアクセス位置を変更したときに呼び出す関数（例：XY関数内で呼び出す）
+function onAccessPositionChange() {
+    // メモリブロックの色を変更してアニメーション
+    changeMemoryBlockColor();
+}
+
+
 
   </script>
+ </head>
+ <body onload="draw()" onclick="MouseXY();" touchstart="TouchXY();" >
+   <canvas id="canvas" width="600" height="300"></canvas>
+   <div id="Logical" style="position:absolute;font-size:12pt;"></div>
+   <div id="Physical" style="position:absolute;font-size:12pt;"></div>
+   <div id="Pagetable" style="position:absolute;font-size:12pt;"></div>
+   <div id="llow" style="position:absolute;font-size:12pt;"></div>
+   <div id="lhigh" style="position:absolute;font-size:12pt;"></div>
+   <div id="plow" style="position:absolute;font-size:12pt;"></div>
+   <div id="phigh" style="position:absolute;font-size:12pt;"></div>
+  <H1>Translation from Logical address to Physical Address</H1></div>
+ </body>
+</html>
