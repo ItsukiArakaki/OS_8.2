@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Translation from Logical address to Physical Address</title>
     <style>
         body {
@@ -20,62 +19,51 @@
             height: 100vh;
         }
 
-        #header {
-            text-align: center;
-            font-size: 24px;
+        #canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 600px;
             margin-bottom: 20px;
         }
 
-        #canvas-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 600px;
-        }
-
-        #canvas-container canvas {
+        canvas {
             border: 1px solid #000;
         }
 
         #info-container {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            width: 600px;
-            margin-top: 20px;
         }
 
         .info {
-            text-align: center;
             font-size: 16px;
+            margin: 5px 0;
             padding: 10px;
             background-color: #fff;
             border: 1px solid #ccc;
             border-radius: 5px;
-            width: 120px;
-        }
-
-        #info-container .info + .info {
-            margin-left: 20px;
+            width: 300px;
+            text-align: center;
         }
 
         h1 {
             text-align: center;
-            font-size: 28px;
-            margin-top: 20px;
+            font-size: 24px;
         }
     </style>
 </head>
 <body>
     <div id="container">
-        <h1>Translation from Logical Address to Physical Address</h1>
+        <h1>Translation from Logical address to Physical Address</h1>
         <div id="canvas-container">
-            <canvas id="canvas" width="300" height="300"></canvas>
+            <canvas id="canvas" width="600" height="300"></canvas>
         </div>
         <div id="info-container">
-            <div class="info" id="logical-info">Logical Address</div>
-            <div class="info" id="translation-info">Translation</div>
-            <div class="info" id="physical-info">Physical Address</div>
+            <div class="info" id="logical-info">Logical Address: 0x0</div>
+            <div class="info" id="translation-info">Translation: 0x0</div>
+            <div class="info" id="physical-info">Physical Address: 0x0</div>
         </div>
     </div>
 
@@ -93,124 +81,104 @@
         var plow;
         var phigh;
 
-        for(var i=0;i<vmsize;i++) {
-            var v = Math.floor(Math.random()*vmsize);
+        for (var i = 0; i < vmsize; i++) {
+            var v = Math.floor(Math.random() * vmsize);
             pagetable[i] = v;
-            pagetableString += v.toString(16) +"\n";
+            pagetableString += v.toString(16) + "\n";
         }
 
         function draw() {
             var canvas = document.getElementById("canvas");
             var ctx = canvas.getContext("2d");
-            canvas.ontouchmove = TouchXY;
+            canvas.onmousemove = MouseXY;
 
-            memory(ctx,10,10);
-            memory(ctx,250,10);
-            pointer(ctx,80,50);
-            pointer(ctx,170,50);
-            page(ctx, 130,120);
+            memory(ctx, 10, 10);
+            memory(ctx, 250, 10);
+            pointer(ctx, 80, 50);
+            pointer(ctx, 170, 50);
+            page(ctx, 130, 120);
 
         }
 
-        function text(name,text,x,y)
-        {
-            // ctx.fillText(text,x*scale,y*scale);
-            var X=document.body.scrollLeft+x*scale;
-            var Y=document.body.scrollTop+y*scale;
-            document.all[name].style.left=X+20;
-            document.all[name].style.top=Y-5;
-            document.all[name].innerText=text;
+        function text(name, text) {
+            var info = document.getElementById(name);
+            info.textContent = text;
         }
 
-
-        function MouseXY()
-        {
-            var x = event.x/scale;
-            var y = event.y/1;
-            XY(x,y);
-        }
-
-        function TouchXY()
-        {
+        function MouseXY(event) {
             var canvas = document.getElementById("canvas");
-            var x =  event.pageX - canvas.offsetLeft;
-            var y =  event.pageY - canvas.offsetTop
-            XY(x,y);
+            var rect = canvas.getBoundingClientRect();
+            var x = (event.clientX - rect.left) / scale;
+            var y = (event.clientY - rect.top) / scale;
+            XY(x, y);
         }
 
-        function XY(x,y)
-        {
-            if (10<=x&&x<=110&&10<=y&&y<=310) {
-            var canvas = document.getElementById("canvas");
-            var ctx = canvas.getContext("2d");
-            ctx.clearRect(10,10,10+60,410);
-            memory(ctx,10,10);
-            ctx.clearRect(250*scale,10,250*scale+60,410);
-            memory(ctx,250,10);
+        function XY(x, y) {
+            if (10 <= x && x <= 110 && 10 <= y && y <= 310) {
+                var canvas = document.getElementById("canvas");
+                var ctx = canvas.getContext("2d");
+                ctx.clearRect(10, 10, 10 + 60, 410);
+                memory(ctx, 10, 10);
+                ctx.clearRect(250 * scale, 10, 250 * scale + 60, 410);
+                memory(ctx, 250, 10);
 
-            strokeRect(ctx,10,y,10+width,y+2);
-                address = (y-10)*100;
+                strokeRect(ctx, 10, y, 10 + width, y + 2);
+                address = (y - 10) * 100;
                 physical = translate(address);
-            y = physical/100+10;
-            strokeRect(ctx,250,y,250+width,y+2);
-            update1();
+                y = physical / 100 + 10;
+                strokeRect(ctx, 250, y, 250 + width, y + 2);
+                update1();
             }
         }
 
-        function update1() 
-        {
-            text("Logical","logical address = 0x"+address.toString(16),10,150);
-            text("Physical","physical address = 0x"+physical.toString(16),250,150);
-            text("Pagetable",pagetableString,130,70);
-            text("lhigh",lhigh.toString(16),90,32);
-            text("llow",llow.toString(16),120,32);
-            text("phigh",phigh.toString(16),90+90,32);
-            text("plow",plow.toString(16),120+90,32);
+        function update1() {
+            text("logical-info", "Logical Address: 0x" + address.toString(16));
+            text("translation-info", "Translation: 0x" + physical.toString(16));
+            text("physical-info", "Physical Address: 0x" + physical.toString(16));
         }
 
-        function translate(adr)
-        {
-            lhigh = Math.floor(adr/psize);
-            llow = adr%psize;
+        function translate(adr) {
+            lhigh = Math.floor(adr / psize);
+            llow = adr % psize;
             phigh = pagetable[lhigh];
             plow = llow;
-            return phigh*psize+plow;
+            return phigh * psize + plow;
         }
 
-        function strokeRect(ctx,x,y,x1,y1)
-        {
-            return ctx.strokeRect(x*scale,y,(x1-x)*scale,(y1-y)*scale);
+        function strokeRect(ctx, x, y, x1, y1) {
+            return ctx.strokeRect(x * scale, y, (x1 - x) * scale, (y1 - y) * scale);
         }
 
-        function pointer(ctx,x,y) {
+        function pointer(ctx, x, y) {
             var dy = 10;
-            strokeRect(ctx,x,y,x+width,y+dy);
+            strokeRect(ctx, x, y, x + width, y + dy);
             x += width;
-            strokeRect(ctx,x,y,x+width,y+dy);
+            strokeRect(ctx, x, y, x + width, y + dy);
         }
 
-        function memory(ctx,x,y) {
+        function memory(ctx, x, y) {
             var dy = 40;
             var dx = 40;
 
-            for(var i=0;i<vmsize-1;i++) {
-            strokeRect(ctx,x,y,x+width,y+dy);
-            y += dy;
+            for (var i = 0; i < vmsize - 1; i++) {
+                strokeRect(ctx, x, y, x + width, y + dy);
+                y += dy;
             }
         }
 
-        function page(ctx,x,y) {
+        function page(ctx, x, y) {
             var dy = 20;
             var dx = 40;
 
-            for(var i=0;i<vmsize-1;i++) {
-            strokeRect(ctx,x,y,x+width,y+dy);
-            y += dy;
+            for (var i = 0; i < vmsize - 1; i++) {
+                strokeRect(ctx, x, y, x + width, y + dy);
+                y += dy;
             }
             return box;
         }
 
+        draw(); // 自動で描画を開始
+
     </script>
 </body>
 </html>
-
