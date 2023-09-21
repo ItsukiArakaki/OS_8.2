@@ -90,7 +90,7 @@
         function draw() {
             var canvas = document.getElementById("canvas");
             var ctx = canvas.getContext("2d");
-            canvas.onmousemove = MouseXY;
+            canvas.addEventListener("mousemove", MouseXY);
 
             memory(ctx, 10, 10);
             memory(ctx, 250, 10);
